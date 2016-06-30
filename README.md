@@ -4,18 +4,16 @@
 ### *React Projects*
 ---
 
-### Basejump: Build a Recipe Box
+### Basejump: Build a Game of Life
 
 #### USER STORIES:
 
-1. I can create recipes that have names and ingredients.
+1. I can start and stop the board.
 
-2. I can see an index view where the names of all the recipes are visible.
+2. I can set up the board.
 
-3. I can click into any of those recipes to view it.
+3. I can clear the board.
 
-4. I can edit these recipes.
+4. When I press start, the game will play out.
 
-5. I can delete these recipes.
-
-6. All new recipes I add are saved in my browser's local storage. If I refresh the page, these recipes will still be there.
+5. Each time the board changes, I can see how many generations have gone by.
