@@ -1,24 +1,13 @@
 import React from "react";
-var canvasSide = 700;
-var ctx;
-
-function shuffleArray(array) {
-    for (var i = array.length - 1; i > 0; i--) {
-        var j = Math.floor(Math.random() * (i + 1));
-        var temp = array[i];
-        array[i] = array[j];
-        array[j] = temp;
-    }
-    return array;
-}
+var canvasSide = 800;
 
 class Board extends React.Component {
 
     constructor(props) {
         super(props);
         this.state = {
-            boardSide: 105,
-            gridSide: 700 / 105,
+            boardSide: 125,
+            gridSide: 800 / 125,
             start: true,
             simSpeed: 250,
             generation: 0
@@ -27,6 +16,7 @@ class Board extends React.Component {
         this.copyGrid;
         this.ctx;
         this.c;
+        this.frame;
     }
 
     updateGrid() {
@@ -85,7 +75,6 @@ class Board extends React.Component {
 
     go() {
         var _this = this;
-        var frame;
         if (_this.state.start) {
             setTimeout(function() {
                 _this.setState({
@@ -93,10 +82,10 @@ class Board extends React.Component {
                 });
                 _this.drawSquares();
                 _this.updateGrid();
-                frame = requestAnimationFrame(_this.go.bind(_this));
-            }, 5000);
+                _this.frame = requestAnimationFrame(_this.go.bind(_this));
+            }, 500 - _this.state.simSpeed);
         } else {
-            cancelAnimationFrame(frame);
+            cancelAnimationFrame(_this.frame);
         }
     }
 
@@ -115,6 +104,7 @@ class Board extends React.Component {
         this.copyGrid = this.createArray(this.state.boardSide);
         if (this.state.start) {
             this.randomStart(this.state.boardSide);
+            this.go();
         }
     }
 
@@ -124,10 +114,10 @@ class Board extends React.Component {
                 this.grid[j][k] = Math.floor((Math.random() * 2));
             }
         }
-        this.go();
     }
 
     changeGridSides(e) {
+        this.pause();
         var boardSide = parseInt(e.target.value);
         var gridSide = canvasSide / boardSide;
         var _this = this;
@@ -140,9 +130,10 @@ class Board extends React.Component {
             _this.copyGrid = _this.createArray(boardSide);
             _this.setState({
                 start: true
-            }, function() {
-                _this.randomStart(boardSide);
-            })
+            });
+            _this.randomStart(boardSide);
+            _this.drawSquares();
+            _this.updateGrid();
         });
     }
 
@@ -184,7 +175,11 @@ class Board extends React.Component {
 
     add(e) {
         var cord = this.getCoordinates(e);
-        this.grid[Math.floor(cord.x / this.state.gridSide)][Math.floor(cord.y / this.state.gridSide)] = 1;
+        var gridSide = this.state.gridSide;
+        var x = Math.floor(cord.x / gridSide);
+        var y = Math.floor(cord.y / gridSide);
+        this.grid[x][y] = 1;
+        this.ctx.fillRect(x * gridSide, y * gridSide, gridSide, gridSide);
     }
 
     getCoordinates(e) {
@@ -198,11 +193,34 @@ class Board extends React.Component {
         }
     }
 
+    clear() {
+        var boardSide = this.state.boardSide;
+        this.setState({
+            generation: 0
+        });
+        this.pause();
+        this.ctx.clearRect(0, 0, canvasSide, canvasSide);
+        this.drawGridLines();
+        for (var j = 0; j < boardSide; j++) {
+            for (var k = 0; k < boardSide; k++) {
+                this.grid[j][k] = 0;
+            }
+        }
+    }
+
     start() {
+        var _this = this;
         this.setState({
             start: true
+        }, function() {
+            _this.go();
         });
-        this.go();
+    }
+
+    pause() {
+        this.setState({
+            start: false
+        });
     }
 
     changeSpeed(e) {
@@ -216,21 +234,21 @@ class Board extends React.Component {
         return (
             <div id="content">
 	            <div id="controls">
-	        		<button className="control">Run</button>
-	        		<button className="control">Pause</button>
-	        		<button className="control">Clear</button>
+	        		<button className="control" onClick={(e) => this.start()}>Run</button>
+	        		<button className="control" onClick={(e) => this.pause()}>Pause</button>
+	        		<button className="control" onClick={(e) => this.clear()}>Clear</button>
 	        		<div id="generations">
 	        			<p>Generation: {this.state.generation}</p>
 	        		</div>
 	        	</div>
 	        	<div id="canvas">
-	        		<canvas id="board" width="700" height="700" onClick={(e) => _this.add(e)}></canvas>
+	        		<canvas id="board" width="800" height="800" onClick={(e) => _this.add(e)}></canvas>
 	        	</div>
 	        	<div id="boardSize">
 	        		<div className="tag">
 	        			<p>Board Size: </p>
 	        		</div>
-	        		<input type="range" name="boardSize" min="35" max="175" defaultValue="105" step="35" onInput={(e) => _this.changeGridSides(e)} onChange={(e) => _this.changeGridSides(e)}/>
+	        		<input type="range" name="boardSize" min="50" max="200" defaultValue="125" step="25" onInput={(e) => _this.changeGridSides(e)} onChange={(e) => _this.changeGridSides(e)}/>
 	        	</div>
 	        	<div id="simSpeed">
 	        		<div className="tag">
